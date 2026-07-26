@@ -8,29 +8,39 @@ A full-stack Spring Boot application built as part of an internship assignment. 
 
 ### 1. `/hello` Endpoint
 
-![Browser showing /hello working](screenshots/helloWorldEndpoint.png)
-*Figure 1: The `GET /hello` endpoint returning a plain-text response in the browser.*
+![Browser showing /hello working](screenshots/HelloWorldEndpoint.png)
+_Figure 1: The `GET /hello` endpoint returning a plain-text response in the browser._
 
-### 2. User Management UI (DB connection proof)
+### 2. User Management UI
 
-![DB connection success](screenshots/UsersEndpoint.png)
-*Figure 2: The dark-theme UI successfully listing users fetched from PostgreSQL.*
+![Dark-theme frontend showing user list with Add/Edit/Delete controls](screenshots/FrontendUsers.png)
+_Figure 2: The frontend displaying live users fetched from PostgreSQL, with stats cards (Total Users, DB Status, Base URL) and full CRUD controls._
+
+### 3. PostgreSQL Query Verification
+
+![pgAdmin query output for SELECT * FROM Users](screenshots/QueryOutput.png)
+_Figure 3: `SELECT _ FROM Users` run in pgAdmin confirming the same users are persisted directly in the database.\*
+
+### 4. `/users` REST Endpoint (raw JSON)
+
+![REST API users endpoint response](screenshots/UsersEndpoint.png)
+_Figure 4: The `GET /users` endpoint returning a paginated JSON response directly in the browser._
 
 ---
 
 ## ✨ Features
 
-| Feature | Detail |
-|---|---|
-| **Hello Endpoint** | `GET /hello` returns `"Hello, World!"` |
-| **User CRUD** | Full Create / Read / Update / Delete via REST |
-| **PostgreSQL** | Persistent storage with Spring Data JPA |
-| **Pagination** | Backend-driven pages (default 5 per page) via Spring `Pageable` |
-| **Validation** | `@NotBlank`, `@Email`, unique-email check — all enforced server-side |
-| **Error Handling** | `@RestControllerAdvice` returns structured JSON error responses |
-| **Dark UI** | Vanilla HTML/CSS/JS frontend with toast notifications |
-| **API Explorer** | Built-in Endpoints tab to test `/hello` and `/users` live |
-| **Secure Config** | DB credentials stored in a gitignored local properties file |
+| Feature            | Detail                                                               |
+| ------------------ | -------------------------------------------------------------------- |
+| **Hello Endpoint** | `GET /hello` returns `"Hello, World!"`                               |
+| **User CRUD**      | Full Create / Read / Update / Delete via REST                        |
+| **PostgreSQL**     | Persistent storage with Spring Data JPA                              |
+| **Pagination**     | Backend-driven pages (default 5 per page) via Spring `Pageable`      |
+| **Validation**     | `@NotBlank`, `@Email`, unique-email check — all enforced server-side |
+| **Error Handling** | `@RestControllerAdvice` returns structured JSON error responses      |
+| **Dark UI**        | Vanilla HTML/CSS/JS frontend with toast notifications                |
+| **API Explorer**   | Built-in Endpoints tab to test `/hello` and `/users` live            |
+| **Secure Config**  | DB credentials stored in a gitignored local properties file          |
 
 ---
 
@@ -62,19 +72,21 @@ src/
 
 ## 🔌 API Endpoints
 
-| Method | Path | Description | Body |
-|--------|------|-------------|------|
-| `GET` | `/hello` | Returns `"Hello, World!"` | — |
-| `GET` | `/users?page=0&size=5` | Paginated list of users | — |
-| `POST` | `/users` | Create a new user | `{ "name": "...", "email": "..." }` |
-| `PUT` | `/users` | Update an existing user | `{ "id": 1, "name": "...", "email": "..." }` |
-| `DELETE` | `/users` | Delete a user by ID | `{ "id": 1 }` |
+| Method   | Path                   | Description               | Body                                         |
+| -------- | ---------------------- | ------------------------- | -------------------------------------------- |
+| `GET`    | `/hello`               | Returns `"Hello, World!"` | —                                            |
+| `GET`    | `/users?page=0&size=5` | Paginated list of users   | —                                            |
+| `POST`   | `/users`               | Create a new user         | `{ "name": "...", "email": "..." }`          |
+| `PUT`    | `/users`               | Update an existing user   | `{ "id": 1, "name": "...", "email": "..." }` |
+| `DELETE` | `/users`               | Delete a user by ID       | `{ "id": 1 }`                                |
 
 ### Validation Rules
+
 - `name` — must not be blank
 - `email` — must be a valid email format and **unique** across all users
 
 ### Error Response Format
+
 ```json
 {
   "email": "Email is already in use"
@@ -96,23 +108,28 @@ src/
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
+
 - Java 17 or higher
 - PostgreSQL installed and running locally
 - Maven (or use the included `mvnw` wrapper)
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/hrittikaaa/intern-demo.git
 cd intern-demo
 ```
 
 ### 2. Create the PostgreSQL database
+
 ```sql
 CREATE DATABASE intern_demo;
 ```
 
 ### 3. Configure credentials
+
 Create the file `src/main/resources/application-local.properties` (already gitignored):
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/intern_demo
 spring.datasource.username=your_username
@@ -120,6 +137,7 @@ spring.datasource.password=your_password
 ```
 
 ### 4. Run the application
+
 ```bash
 ./mvnw spring-boot:run
 ```
@@ -135,7 +153,8 @@ The app will start on **http://localhost:8080**
 DB credentials are **never hardcoded** in `application.properties`. The committed file uses environment variable placeholders:
 
 ```properties
-spring.datasource.password=${DB_PASSWORD:}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 ```
 
 The real values live in `application-local.properties`, which is listed in `.gitignore` and never pushed to GitHub.
@@ -145,6 +164,7 @@ The real values live in `application-local.properties`, which is listed in `.git
 ## 📚 Learning Outcomes
 
 This project was built to demonstrate:
+
 - Setting up a Spring Boot project from scratch using Spring Initializr
 - Connecting to and querying a PostgreSQL database with JPA/Hibernate
 - Building a REST API with proper HTTP methods and status codes
