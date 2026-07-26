@@ -16,12 +16,13 @@ This is a full-stack Spring Boot application that provides a RESTful API for man
 ### 1. Browser showing `/hello` working
 
 ![Browser showing /hello working](screenshots/helloWorldEndpoint.png)
+*Figure 1: The `/hello` endpoint successfully returning a response.*
 
 
 ### 2. DB connection success (Console log or DB Client)
-*(Replace the image link below with your screenshot once you take it)*
 
 ![DB connection success](screenshots/UsersEndpoint.png)
+*Figure 2: The UI successfully fetching and displaying data from the PostgreSQL database.*
 
 ---
 
