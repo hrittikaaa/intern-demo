@@ -2,141 +2,646 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intern Demo — User Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161b26;
+      --card:      #1e2535;
+      --border:    #2a3349;
+      --primary:   #6c8ef7;
+      --primary-h: #8aaafa;
+      --danger:    #e05c6b;
+      --danger-h:  #f07080;
+      --success:   #3ecf8e;
+      --warning:   #f5a623;
+      --text:      #e2e8f0;
+      --muted:     #7c8fa6;
+      --radius:    10px;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 0 20px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
     }
-    h1 { font-size: 1.5rem; margin-bottom: 20px; }
-    h2 { font-size: 1.1rem; margin-top: 30px; }
 
-    form { display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
-    input {
-      padding: 6px 10px;
-      font-size: 0.95rem;
-      border: 1px solid #aaa;
-      border-radius: 4px;
+    /* ── Navbar ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    button {
-      padding: 7px;
-      background: #333;
-      color: #fff;
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+    }
+    .nav-brand span { color: var(--text); font-weight: 300; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      background: rgba(108, 142, 247, 0.12);
+      color: var(--primary);
+    }
+    .nav-badge {
+      display: inline-block;
+      background: rgba(62, 207, 142, 0.15);
+      color: var(--success);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(62, 207, 142, 0.3);
+    }
+
+    /* ── Page layout ── */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+
+    /* ── View sections ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Page header ── */
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .page-header p  { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card + .card { margin-top: 20px; }
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,142,247,0.15);
+    }
+    input[type="hidden"] { display: none; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 18px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      font-size: 0.95rem;
+      transition: background 0.15s, transform 0.1s;
     }
-    button:hover { background: #555; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-h); }
+    .btn-ghost   { background: var(--border); color: var(--muted); }
+    .btn-ghost:hover { background: #3a4460; color: var(--text); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-h); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
 
-    #message { margin-top: 8px; font-size: 0.9rem; color: green; }
-    #message.error { color: red; }
+    /* ── Toast message ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 999;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { background: #1a3a2e; border: 1px solid var(--success); color: var(--success); }
+    #toast.error   { background: #3a1a1e; border: 1px solid var(--danger);  color: var(--danger); }
 
+    /* ── Table ── */
+    .table-wrapper { overflow-x: auto; }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
-    th, td {
+    thead th {
       text-align: left;
-      padding: 7px 10px;
-      border: 1px solid #ddd;
+      padding: 10px 16px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
     }
-    th { background: #f0f0f0; }
-    tr:nth-child(even) { background: #fafafa; }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 13px 16px; color: var(--text); vertical-align: middle; }
+    .td-id   { color: var(--muted); font-size: 0.78rem; font-family: monospace; }
+    .td-name { font-weight: 500; }
+    .td-email{ color: var(--muted); }
 
-    #no-users { color: #888; font-size: 0.9rem; margin-top: 8px; }
+    /* ── User avatar circle ── */
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: #fff;
+      margin-right: 10px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--muted);
+    }
+    .empty-state svg { margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── Stats cards ── */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+    .stat-value.primary { color: var(--primary); }
+
+    /* ── Hello endpoint view ── */
+    .endpoint-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .method-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-right: 10px;
+    }
+    .method-get    { background: rgba(62,207,142,0.15); color: var(--success); border: 1px solid rgba(62,207,142,0.3); }
+    .method-post   { background: rgba(108,142,247,0.15); color: var(--primary); border: 1px solid rgba(108,142,247,0.3); }
+    .method-put    { background: rgba(245,166,35,0.15); color: var(--warning); border: 1px solid rgba(245,166,35,0.3); }
+    .method-delete { background: rgba(224,92,107,0.15); color: var(--danger); border: 1px solid rgba(224,92,107,0.3); }
+    .endpoint-path { font-family: monospace; font-size: 0.9rem; color: var(--text); }
+    .endpoint-desc { font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
+    .try-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; padding: 7px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 7px;
+      font-size: 0.8rem; font-weight: 500; font-family: inherit;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .try-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(108,142,247,0.08); }
+    .response-box {
+      margin-top: 12px; padding: 12px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-family: monospace; font-size: 0.85rem;
+      color: var(--success); display: none;
+    }
+    .response-box.visible { display: block; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .pag-info { font-size: 0.8rem; color: var(--muted); }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn {
+      min-width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      font-size: 0.8rem; font-weight: 500; font-family: inherit;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .pag-btn:hover:not(:disabled) { background: var(--card); color: var(--text); border-color: var(--primary); }
+    .pag-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   </style>
 </head>
 <body>
 
-  <h1>User Management</h1>
+  <!-- ── Navbar ── -->
+  <nav>
+    <div class="nav-brand">intern<span>-demo</span></div>
+    <div class="nav-links">
+      <a href="#" id="navUsers" class="active" onclick="showView('users',this)">Users</a>
+      <a href="#" id="navEndpoints" onclick="showView('endpoints',this)">Endpoints</a>
+    </div>
+  </nav>
 
-  <!-- Add User Form -->
-  <h2>Add User</h2>
-  <form id="userForm">
-    <input type="text"  id="name"  placeholder="Name"  required />
-    <input type="email" id="email" placeholder="Email" required />
-    <button type="submit">Add User</button>
-  </form>
-  <p id="message"></p>
+  <!-- ── Toast ── -->
+  <div id="toast"></div>
 
-  <!-- User List -->
-  <h2>All Users</h2>
-  <div id="no-users" style="display:none;">No users found.</div>
-  <table id="userTable" style="display:none;">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-      </tr>
-    </thead>
-    <tbody id="userBody"></tbody>
-  </table>
+  <main>
+
+    <!-- ══ USERS VIEW ══ -->
+    <div id="viewUsers" class="view active">
+      <div class="page-header">
+        <h1>User Management</h1>
+        <p>Add, edit, and delete users from the PostgreSQL database.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value primary" id="statTotal">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">DB Status</div>
+          <div class="stat-value" style="font-size:1rem; color: var(--success);" id="statDb">Connected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Base URL</div>
+          <div class="stat-value" style="font-size:0.85rem; color: var(--muted); font-family:monospace;">localhost:8080</div>
+        </div>
+      </div>
+
+      <!-- Form card -->
+      <div class="card">
+        <div class="card-title" id="formCardTitle">Add New User</div>
+        <input type="hidden" id="userId" />
+        <div class="form-grid">
+          <div>
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="e.g. Jane Doe" />
+          </div>
+          <div>
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="e.g. jane@example.com" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">Add User</button>
+          <button class="btn btn-ghost" id="cancelBtn" style="display:none" onclick="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Table card -->
+      <div class="card" style="padding:0; overflow:hidden; margin-top:20px;">
+        <div style="padding:18px 24px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+          <span class="card-title" style="margin:0;">All Users</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↺ Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="empty-state" id="noUsers">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <p>No users yet. Add one above!</p>
+          </div>
+          <table id="userTable" style="display:none;">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Email</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userBody"></tbody>
+          </table>
+        </div>
+        <!-- Pagination bar -->
+        <div class="pagination" id="paginationBar" style="display:none;">
+          <span class="pag-info" id="pagInfo"></span>
+          <div class="pag-btns" id="pagBtns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ENDPOINTS VIEW ══ -->
+    <div id="viewEndpoints" class="view">
+      <div class="page-header">
+        <h1>API Endpoints</h1>
+        <p>All available REST endpoints exposed by this Spring Boot application.</p>
+      </div>
+
+      <div class="endpoint-card">
+        <div>
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/hello</span>
+        </div>
+        <div class="endpoint-desc">Returns a plain "Hello, World!" string. The simplest endpoint to verify the server is up.</div>
+        <button class="try-btn" onclick="tryHello()">▶ Try it</button>
+      </div>
+
+      <div class="endpoint-card">
+        <div>
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/users</span>
+        </div>
+        <div class="endpoint-desc">Fetches and returns a JSON array of all users in the database.</div>
+        <button class="try-btn" onclick="tryGetUsers()">▶ Try it</button>
+      </div>
+
+      <div class="endpoint-card">
+        <div>
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-path">/users</span>
+        </div>
+        <div class="endpoint-desc">Creates a new user. Requires a JSON body with <code style="color:var(--primary)">name</code> and <code style="color:var(--primary)">email</code>. Validated by the backend.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div>
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-path">/users</span>
+        </div>
+        <div class="endpoint-desc">Updates an existing user. Requires a JSON body with <code style="color:var(--primary)">id</code>, <code style="color:var(--primary)">name</code>, and <code style="color:var(--primary)">email</code>.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div>
+          <span class="method-badge method-delete">DELETE</span>
+          <span class="endpoint-path">/users</span>
+        </div>
+        <div class="endpoint-desc">Deletes a user by ID. Requires a JSON body with just the <code style="color:var(--primary)">id</code> field.</div>
+      </div>
+    </div>
+
+  </main>
 
   <script>
-    const form    = document.getElementById('userForm');
-    const message = document.getElementById('message');
-    const table   = document.getElementById('userTable');
-    const noUsers = document.getElementById('no-users');
-    const tbody   = document.getElementById('userBody');
+    // ── View routing ──
+    function showView(name, el) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+      el.classList.add('active');
+    }
 
-    // Load users on page load
+    // ── Toast ──
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show ' + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+    }
+
+    // ── DOM refs ──
+    const userIdInput  = document.getElementById('userId');
+    const submitBtn    = document.getElementById('submitBtn');
+    const cancelBtn    = document.getElementById('cancelBtn');
+    const formTitle    = document.getElementById('formCardTitle');
+    const userTable    = document.getElementById('userTable');
+    const noUsers      = document.getElementById('noUsers');
+    const tbody        = document.getElementById('userBody');
+    const statTotal    = document.getElementById('statTotal');
+
+    // ── Keyboard: submit on Enter ──
+    ['name','email'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitForm();
+      });
+    });
+
+    // ── Init ──
     loadUsers();
 
-    // Handle form submit
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // ── Cancel edit ──
+    function cancelEdit() {
+      document.getElementById('name').value = '';
+      document.getElementById('email').value = '';
+      userIdInput.value = '';
+      submitBtn.textContent = 'Add User';
+      cancelBtn.style.display = 'none';
+      formTitle.textContent = 'Add New User';
+    }
+
+    // ── Submit (add or update) ──
+    async function submitForm() {
+      const id    = userIdInput.value;
       const name  = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
+      const isUpdate = id !== '';
+      const body = { name, email };
+      if (isUpdate) body.id = id;
 
       try {
         const res = await fetch('/users', {
-          method: 'POST',
+          method: isUpdate ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email })
+          body: JSON.stringify(body)
         });
 
-        if (!res.ok) throw new Error('Failed to add user');
+        if (!res.ok) {
+          if (res.status === 400) {
+            const errors = await res.json();
+            throw new Error(Object.values(errors).join(', '));
+          }
+          throw new Error('Failed to save user');
+        }
 
-        message.className = '';
-        message.textContent = 'User added successfully!';
-        form.reset();
+        showToast(isUpdate ? '✓ User updated successfully' : '✓ User added successfully');
+        cancelEdit();
         loadUsers();
       } catch (err) {
-        message.className = 'error';
-        message.textContent = 'Error: ' + err.message;
+        showToast('✕ ' + err.message, 'error');
       }
-    });
+    }
 
-    async function loadUsers() {
+    // ── Edit user ──
+    window.editUser = function(id, name, email) {
+      userIdInput.value = id;
+      document.getElementById('name').value = name;
+      document.getElementById('email').value = email;
+      submitBtn.textContent = 'Update User';
+      cancelBtn.style.display = 'inline-flex';
+      formTitle.textContent = 'Edit User';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // ── Delete user ──
+    window.deleteUser = async function(id) {
+      if (!confirm('Delete this user? This cannot be undone.')) return;
       try {
-        const res   = await fetch('/users');
-        const users = await res.json();
+        const res = await fetch('/users', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (!res.ok) throw new Error('Failed to delete user');
+        if (userIdInput.value === id.toString()) cancelEdit();
+        showToast('✓ User deleted');
+        loadUsers();
+      } catch (err) {
+        showToast('✕ ' + err.message, 'error');
+      }
+    };
 
+    // ── Load users (paginated) ──
+    let currentPage = 0;
+    const PAGE_SIZE = 5;
+
+    async function loadUsers(page = currentPage) {
+      currentPage = page;
+      try {
+        const res  = await fetch(`/users?page=${page}&size=${PAGE_SIZE}`);
+        const data = await res.json();          // Page<User> object
+        const users = data.content;
         tbody.innerHTML = '';
+        statTotal.textContent = data.totalElements;
 
-        if (users.length === 0) {
-          table.style.display   = 'none';
-          noUsers.style.display = 'block';
+        if (users.length === 0 && data.totalElements === 0) {
+          userTable.style.display      = 'none';
+          noUsers.style.display        = 'block';
+          document.getElementById('paginationBar').style.display = 'none';
         } else {
-          noUsers.style.display = 'none';
-          table.style.display   = 'table';
+          noUsers.style.display        = 'none';
+          userTable.style.display      = 'table';
           users.forEach(u => {
-            const row = `<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td></tr>`;
-            tbody.insertAdjacentHTML('beforeend', row);
+            const initials  = u.name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+            const safeName  = u.name.replace(/'/g, "\\'");
+            const safeEmail = u.email.replace(/'/g, "\\'");
+            tbody.insertAdjacentHTML('beforeend', `
+              <tr>
+                <td class="td-id">#${u.id}</td>
+                <td class="td-name"><span class="avatar">${initials}</span>${u.name}</td>
+                <td class="td-email">${u.email}</td>
+                <td style="text-align:right;">
+                  <button class="btn btn-ghost btn-sm" onclick="editUser('${u.id}','${safeName}','${safeEmail}')">Edit</button>
+                  <button class="btn btn-sm" style="background:rgba(224,92,107,0.15);color:var(--danger);margin-left:6px;" onclick="deleteUser(${u.id})">Delete</button>
+                </td>
+              </tr>`);
           });
+          updatePagination(data);
         }
       } catch (err) {
         noUsers.style.display = 'block';
-        noUsers.textContent   = 'Could not load users.';
+        noUsers.querySelector('p').textContent = 'Could not load users — is the server running?';
+        document.getElementById('statDb').textContent = 'Error';
+        document.getElementById('statDb').style.color = 'var(--danger)';
       }
     }
-  </script>
 
+    function updatePagination(data) {
+      const bar     = document.getElementById('paginationBar');
+      const info    = document.getElementById('pagInfo');
+      const btns    = document.getElementById('pagBtns');
+      const start   = data.number * PAGE_SIZE + 1;
+      const end     = Math.min(start + PAGE_SIZE - 1, data.totalElements);
+
+      bar.style.display = data.totalPages > 1 ? 'flex' : 'none';
+      info.textContent  = `Showing ${start}–${end} of ${data.totalElements} users`;
+
+      btns.innerHTML = '';
+      // Prev
+      const prev = document.createElement('button');
+      prev.className = 'pag-btn'; prev.textContent = '‹';
+      prev.disabled  = data.first;
+      prev.onclick   = () => loadUsers(data.number - 1);
+      btns.appendChild(prev);
+      // Page numbers
+      for (let i = 0; i < data.totalPages; i++) {
+        const b = document.createElement('button');
+        b.className = 'pag-btn' + (i === data.number ? ' active' : '');
+        b.textContent = i + 1;
+        b.onclick = () => loadUsers(i);
+        btns.appendChild(b);
+      }
+      // Next
+      const next = document.createElement('button');
+      next.className = 'pag-btn'; next.textContent = '›';
+      next.disabled  = data.last;
+      next.onclick   = () => loadUsers(data.number + 1);
+      btns.appendChild(next);
+    }
+
+    // ── Try-it buttons on Endpoints page ──
+    function tryHello() {
+      window.open('/hello', '_blank');
+    }
+
+    function tryGetUsers() {
+      window.open('/users', '_blank');
+    }
+  </script>
 </body>
 </html>
