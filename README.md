@@ -1,6 +1,6 @@
 # Intern Demo — Spring Boot User Management
 
-A full-stack Spring Boot application built as part of an internship assignment. It exposes a RESTful API for managing users backed by a PostgreSQL database, and serves a custom dark-theme frontend for full CRUD interaction.
+A full-stack Spring Boot application built as part of an internship assignment. It uses Spring MVC and Thymeleaf for server-side rendering to provide full CRUD interaction for managing users backed by a PostgreSQL database.
 
 ---
 
@@ -9,22 +9,22 @@ A full-stack Spring Boot application built as part of an internship assignment. 
 ### 1. `/hello` Endpoint
 
 ![Browser showing /hello working](screenshots/HelloWorldEndpoint.png)
-_Figure 1: The `GET /hello` endpoint returning a plain-text response in the browser._
+_Figure 1: The `GET /hello` endpoint returning a greeting page in the browser._
 
 ### 2. User Management UI
 
 ![Dark-theme frontend showing user list with Add/Edit/Delete controls](screenshots/FrontendUsers.png)
-_Figure 2: The frontend displaying live users fetched from PostgreSQL, with stats cards (Total Users, DB Status, Base URL) and full CRUD controls._
+_Figure 2: The frontend displaying live users fetched from PostgreSQL, with stats cards and full CRUD controls._
 
 ### 3. PostgreSQL Query Verification
 
 ![pgAdmin query output for SELECT * FROM Users](screenshots/QueryOutput.png)
-_Figure 3: `SELECT _ FROM Users` run in pgAdmin confirming the same users are persisted directly in the database.\*
+_Figure 3: `SELECT * FROM Users` run in pgAdmin confirming the same users are persisted directly in the database._
 
-### 4. `/users` REST Endpoint (raw JSON)
+### 4. `/users` Endpoint
 
-![REST API users endpoint response](screenshots/UsersEndpoint.png)
-_Figure 4: The `GET /users` endpoint returning a paginated JSON response directly in the browser._
+![All users page](screenshots/UsersEndpoint.png)
+_Figure 4: The `GET /users` endpoint returning a Thymeleaf-rendered table of all users._
 
 ---
 
@@ -32,14 +32,14 @@ _Figure 4: The `GET /users` endpoint returning a paginated JSON response directl
 
 | Feature            | Detail                                                               |
 | ------------------ | -------------------------------------------------------------------- |
-| **Hello Endpoint** | `GET /hello` returns `"Hello, World!"`                               |
-| **User CRUD**      | Full Create / Read / Update / Delete via REST                        |
+| **Hello Endpoint** | `GET /hello` renders a greeting view, `/api/hello` returns text      |
+| **User CRUD**      | Full Create / Read / Update / Delete via Thymeleaf HTML forms        |
 | **PostgreSQL**     | Persistent storage with Spring Data JPA                              |
 | **Pagination**     | Backend-driven pages (default 5 per page) via Spring `Pageable`      |
 | **Validation**     | `@NotBlank`, `@Email`, unique-email check — all enforced server-side |
-| **Error Handling** | `@RestControllerAdvice` returns structured JSON error responses      |
-| **Dark UI**        | Vanilla HTML/CSS/JS frontend with toast notifications                |
-| **API Explorer**   | Built-in Endpoints tab to test `/hello` and `/users` live            |
+| **Error Handling** | `@ControllerAdvice` maps errors to Thymeleaf flash attributes        |
+| **Dark UI**        | Clean HTML/CSS templates rendered dynamically by Thymeleaf           |
+| **API Explorer**   | Built-in Endpoints tab to explore available routes                   |
 | **Secure Config**  | DB credentials stored in a gitignored local properties file          |
 
 ---
@@ -52,9 +52,10 @@ src/
     ├── java/com/demo/intern_demo/
     │   ├── InternDemoApplication.java      # Entry point
     │   ├── controller/
-    │   │   ├── HelloController.java        # GET /hello
-    │   │   ├── UserController.java         # CRUD /users
-    │   │   └── GlobalExceptionHandler.java # Validation error mapper
+    │   │   ├── HelloController.java        # GET /hello routes
+    │   │   ├── UserController.java         # POST form submissions for CRUD
+    │   │   ├── ViewController.java         # GET page rendering routes
+    │   │   └── GlobalExceptionHandler.java # Validation & error handling
     │   ├── model/
     │   │   └── User.java                   # JPA entity (id, name, email)
     │   ├── repository/
@@ -64,34 +65,36 @@ src/
     └── resources/
         ├── application.properties          # Safe config (committed)
         ├── application-local.properties    # Real credentials (gitignored)
-        └── static/
-            └── index.html                  # Frontend UI
+        └── templates/
+            ├── index.html                  # Main User CRUD view
+            ├── endpoints.html              # Endpoints directory view
+            ├── users.html                  # Read-only all users view
+            └── hello.html                  # Hello greeting view
 ```
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 MVC Routes
 
-| Method   | Path                   | Description               | Body                                         |
-| -------- | ---------------------- | ------------------------- | -------------------------------------------- |
-| `GET`    | `/hello`               | Returns `"Hello, World!"` | —                                            |
-| `GET`    | `/users?page=0&size=5` | Paginated list of users   | —                                            |
-| `POST`   | `/users`               | Create a new user         | `{ "name": "...", "email": "..." }`          |
-| `PUT`    | `/users`               | Update an existing user   | `{ "id": 1, "name": "...", "email": "..." }` |
-| `DELETE` | `/users`               | Delete a user by ID       | `{ "id": 1 }`                                |
+| Method   | Path                   | Description                                  |
+| -------- | ---------------------- | -------------------------------------------- |
+| `GET`    | `/`                    | Renders main User Management page            |
+| `GET`    | `/endpoints`           | Renders Endpoints directory                  |
+| `GET`    | `/users`               | Renders a read-only list of all users        |
+| `GET`    | `/hello`               | Renders Thymeleaf greeting page              |
+| `GET`    | `/api/hello`           | Returns plain-text `"Hello, World!"`         |
+| `POST`   | `/users`               | Form submission to create a new user         |
+| `POST`   | `/users/{id}`          | Form submission to update an existing user   |
+| `POST`   | `/users/{id}/delete`   | Form submission to delete a user by ID       |
 
 ### Validation Rules
 
 - `name` — must not be blank
 - `email` — must be a valid email format and **unique** across all users
 
-### Error Response Format
+### Error Handling
 
-```json
-{
-  "email": "Email is already in use"
-}
-```
+Validation errors and success messages are passed to views using `RedirectAttributes` as flash attributes, displaying toast notifications in the UI.
 
 ---
 
@@ -99,8 +102,9 @@ src/
 
 - **Backend**: Java 23 · Spring Boot 3.3 · Spring Data JPA · Hibernate
 - **Database**: PostgreSQL 18
+- **View Layer**: Thymeleaf
 - **Validation**: Jakarta Bean Validation (`spring-boot-starter-validation`)
-- **Frontend**: Vanilla HTML · CSS · JavaScript (no frameworks)
+- **Frontend**: HTML · Vanilla CSS (no frameworks)
 - **Build**: Maven Wrapper (`mvnw`)
 
 ---
@@ -167,7 +171,7 @@ This project was built to demonstrate:
 
 - Setting up a Spring Boot project from scratch using Spring Initializr
 - Connecting to and querying a PostgreSQL database with JPA/Hibernate
-- Building a REST API with proper HTTP methods and status codes
+- Building a complete Spring MVC application with Thymeleaf templates
+- Handling form submissions, data binding, and redirects
 - Implementing server-side validation and global exception handling
-- Serving a static frontend from within a Spring Boot app
 - Managing secrets and credentials securely with gitignored config files
