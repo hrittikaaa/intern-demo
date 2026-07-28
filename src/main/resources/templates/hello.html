@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hello — Intern Demo</title>
+  <meta name="description" content="Hello World response from the Spring Boot intern demo application."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b26; --card: #1e2535; --border: #2a3349;
+      --primary: #6c8ef7; --success: #3ecf8e; --text: #e2e8f0; --muted: #7c8fa6;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+    }
+    .greeting {
+      font-size: 2.5rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .sub { color: var(--muted); font-size: 0.95rem; }
+    a {
+      margin-top: 8px; color: var(--primary); font-size: 0.875rem;
+      text-decoration: none; border-bottom: 1px solid rgba(108,142,247,0.35);
+      padding-bottom: 2px; transition: border-color 0.15s;
+    }
+    a:hover { border-color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="greeting" th:text="${message}">Hello, World!</div>
+  <a href="/">← Back to User Management</a>
+</body>
+</html>

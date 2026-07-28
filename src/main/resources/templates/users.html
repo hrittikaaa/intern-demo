@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intern Demo — All Users</title>
+  <meta name="description" content="View all registered users from the PostgreSQL database in this Spring Boot + Thymeleaf demo app."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0f14;
+      --surface: #161b26;
+      --card:    #1e2535;
+      --border:  #2a3349;
+      --primary: #6c8ef7;
+      --success: #3ecf8e;
+      --danger:  #e05c6b;
+      --text:    #e2e8f0;
+      --muted:   #7c8fa6;
+      --radius:  10px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 60px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--primary); letter-spacing: -0.3px; }
+    .nav-brand span { color: var(--text); font-weight: 300; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      text-decoration: none; color: var(--muted);
+      font-size: 0.875rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover {
+      background: rgba(108,142,247,0.12); color: var(--primary);
+    }
+
+    /* ── Layout ── */
+    main { max-width: 1000px; margin: 0 auto; padding: 36px 24px; }
+
+    .page-header { margin-bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .page-header p  { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 0.82rem; text-decoration: none;
+      padding: 6px 12px; border: 1px solid var(--border);
+      border-radius: 7px; background: var(--card);
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .back-link:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* ── Stats bar ── */
+    .stats { display: flex; gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+
+    /* ── Card / Table ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted);
+    }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th {
+      text-align: left; padding: 10px 20px;
+      color: var(--muted); font-size: 0.73rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 14px 20px; vertical-align: middle; }
+    .td-id    { color: var(--muted); font-family: monospace; font-size: 0.78rem; width: 80px; }
+    .td-name  { font-weight: 500; }
+    .td-email { color: var(--muted); }
+
+    /* ── Avatar ── */
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #fff;
+      margin-right: 10px; vertical-align: middle; flex-shrink: 0;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 64px 0; color: var(--muted);
+    }
+    .empty-state svg { margin: 0 auto 16px; display: block; opacity: 0.35; }
+    .empty-state p   { font-size: 0.9rem; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-top: 1px solid var(--border);
+    }
+    .pag-info { font-size: 0.8rem; color: var(--muted); }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn {
+      min-width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); background: transparent; color: var(--muted);
+      border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+      text-decoration: none;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .pag-btn:hover  { background: var(--card); color: var(--text); border-color: var(--primary); }
+    .pag-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .pag-btn.disabled { opacity: 0.35; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <nav>
+    <div class="nav-brand">intern<span>-demo</span></div>
+    <div class="nav-links">
+      <a href="/">Users</a>
+      <a href="/endpoints">Endpoints</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <div>
+        <h1>All Users</h1>
+        <p>Read-only view of every user in the PostgreSQL database.</p>
+      </div>
+      <a class="back-link" href="/endpoints">← Back to Endpoints</a>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value" th:text="${totalElements}">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Page</div>
+          <div class="stat-value" style="font-size:1.1rem; color:var(--text);"
+               th:text="${currentPage + 1} + ' / ' + ${totalPages == 0 ? 1 : totalPages}">1 / 1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users table -->
+    <div class="card">
+      <div class="card-header">User Records</div>
+
+      <div class="table-wrapper">
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(users)}">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <p>No users in the database yet.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${not #lists.isEmpty(users)}">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="user : ${users}">
+              <td class="td-id" th:text="'#' + ${user.id}"></td>
+              <td class="td-name">
+                <span class="avatar"
+                  th:text="${#strings.toUpperCase(#strings.substring(user.name, 0, 1))}">?</span>
+                <span th:text="${user.name}"></span>
+              </td>
+              <td class="td-email" th:text="${user.email}"></td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination"
+           th:if="${totalPages > 1}"
+           th:with="start=${currentPage * pageSize + 1},
+                    end=${currentPage * pageSize + #lists.size(users)}">
+        <span class="pag-info"
+          th:text="|Showing ${start}–${end} of ${totalElements} users|"></span>
+        <div class="pag-btns">
+          <a class="pag-btn" th:classappend="${isFirst} ? 'disabled'"
+             th:href="${isFirst} ? '#' : '/users?page=' + ${currentPage - 1}">‹</a>
+
+          <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a class="pag-btn" th:classappend="${i == currentPage} ? 'active'"
+               th:href="'/users?page=' + ${i}"
+               th:text="${i + 1}"></a>
+          </th:block>
+
+          <a class="pag-btn" th:classappend="${isLast} ? 'disabled'"
+             th:href="${isLast} ? '#' : '/users?page=' + ${currentPage + 1}">›</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</body>
+</html>

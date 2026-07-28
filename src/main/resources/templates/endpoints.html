@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intern Demo — API Endpoints</title>
+  <meta name="description" content="Reference for all REST API endpoints exposed by this Spring Boot + Thymeleaf intern demo application."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161b26;
+      --card:      #1e2535;
+      --border:    #2a3349;
+      --primary:   #6c8ef7;
+      --primary-h: #8aaafa;
+      --danger:    #e05c6b;
+      --danger-h:  #f07080;
+      --success:   #3ecf8e;
+      --warning:   #f5a623;
+      --text:      #e2e8f0;
+      --muted:     #7c8fa6;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--primary); letter-spacing: -0.3px; }
+    .nav-brand span { color: var(--text); font-weight: 300; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      text-decoration: none; color: var(--muted);
+      font-size: 0.875rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      background: rgba(108, 142, 247, 0.12);
+      color: var(--primary);
+    }
+
+    /* ── Page layout ── */
+    main { max-width: 1000px; margin: 0 auto; padding: 36px 24px; }
+
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .page-header p  { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+    /* ── Endpoint card ── */
+    .endpoint-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .method-badge {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 5px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
+      margin-right: 10px;
+    }
+    .method-get    { background: rgba(62,207,142,0.15);  color: var(--success); border: 1px solid rgba(62,207,142,0.3); }
+    .method-post   { background: rgba(108,142,247,0.15); color: var(--primary); border: 1px solid rgba(108,142,247,0.3); }
+    .method-put    { background: rgba(245,166,35,0.15);  color: var(--warning); border: 1px solid rgba(245,166,35,0.3); }
+    .method-delete { background: rgba(224,92,107,0.15);  color: var(--danger);  border: 1px solid rgba(224,92,107,0.3); }
+    .endpoint-path { font-family: monospace; font-size: 0.9rem; color: var(--text); }
+    .endpoint-desc { font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
+
+    /* ── Try-it button ── */
+    .try-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; padding: 7px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 7px;
+      font-size: 0.8rem; font-weight: 500; font-family: inherit;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .try-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(108,142,247,0.08); }
+
+    .response-box {
+      margin-top: 12px; padding: 12px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-family: monospace; font-size: 0.85rem;
+      color: var(--success); display: none;
+    }
+    .response-box.visible { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <nav>
+    <div class="nav-brand">intern<span>-demo</span></div>
+    <div class="nav-links">
+      <a href="/" id="navUsers">Users</a>
+      <a href="/endpoints" id="navEndpoints" class="active">Endpoints</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>API Endpoints</h1>
+      <p>All available REST endpoints exposed by this Spring Boot application.</p>
+    </div>
+
+    <!-- GET / -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/</span>
+      </div>
+      <div class="endpoint-desc">
+        Renders the User Management page via Thymeleaf. Accepts optional
+        <code style="color:var(--primary)">page</code> and
+        <code style="color:var(--primary)">size</code> query params for pagination, and
+        <code style="color:var(--primary)">editId</code> to pre-fill the edit form.
+      </div>
+      <a class="try-btn" href="/" target="_blank">▶ Open page</a>
+    </div>
+
+    <!-- GET /hello -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/hello</span>
+      </div>
+      <div class="endpoint-desc">
+        Renders a Thymeleaf greeting page confirming the server is up.
+      </div>
+      <a class="try-btn" href="/hello" target="_blank">▶ Open /hello</a>
+    </div>
+
+    <!-- GET /users (all users) -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/users</span>
+      </div>
+      <div class="endpoint-desc">
+        Renders a Thymeleaf page showing all users from the database in a table.
+        Supports <code style="color:var(--primary)">page</code> and
+        <code style="color:var(--primary)">size</code> query params.
+      </div>
+      <a class="try-btn" href="/users" target="_blank">▶ View all users</a>
+    </div>
+
+    <!-- POST /users (create) -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/users</span>
+      </div>
+      <div class="endpoint-desc">
+        Creates a new user. Submitted via the HTML form on the Users page.
+        Requires <code style="color:var(--primary)">name</code> and
+        <code style="color:var(--primary)">email</code> fields. Validated server-side; redirects back with a flash message.
+      </div>
+    </div>
+
+    <!-- POST /users/{id} (update) -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/users/{id}</span>
+      </div>
+      <div class="endpoint-desc">
+        Updates an existing user. Triggered by the Edit form on the Users page
+        (accessed via <code style="color:var(--primary)">/?editId={id}</code>).
+        Requires <code style="color:var(--primary)">name</code> and
+        <code style="color:var(--primary)">email</code> form fields.
+      </div>
+    </div>
+
+    <!-- POST /users/{id}/delete -->
+    <div class="endpoint-card">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/users/{id}/delete</span>
+      </div>
+      <div class="endpoint-desc">
+        Deletes a user by ID. Triggered by the Delete button on each table row.
+        Redirects back to <code style="color:var(--primary)">/</code> with a flash message.
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intern Demo — User Management</title>
+  <meta name="description" content="Manage users in the PostgreSQL database — add, edit, and delete records through this Spring Boot + Thymeleaf demo app."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161b26;
+      --card:      #1e2535;
+      --border:    #2a3349;
+      --primary:   #6c8ef7;
+      --primary-h: #8aaafa;
+      --danger:    #e05c6b;
+      --danger-h:  #f07080;
+      --success:   #3ecf8e;
+      --warning:   #f5a623;
+      --text:      #e2e8f0;
+      --muted:     #7c8fa6;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--primary); letter-spacing: -0.3px; }
+    .nav-brand span { color: var(--text); font-weight: 300; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      text-decoration: none; color: var(--muted);
+      font-size: 0.875rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      background: rgba(108, 142, 247, 0.12);
+      color: var(--primary);
+    }
+
+    /* ── Layout ── */
+    main { max-width: 1000px; margin: 0 auto; padding: 36px 24px; }
+
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .page-header p  { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+    /* ── Flash banner ── */
+    .flash {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 18px; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 500;
+      margin-bottom: 20px;
+      animation: slideIn 0.25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .flash-success { background: #1a3a2e; border: 1px solid var(--success); color: var(--success); }
+    .flash-error   { background: #3a1a1e; border: 1px solid var(--danger);  color: var(--danger); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card + .card { margin-top: 20px; }
+    .card-title {
+      font-size: 0.8rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--muted); margin-bottom: 18px;
+    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,142,247,0.15);
+    }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 20px; border: none; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-h); }
+    .btn-ghost   { background: var(--border); color: var(--muted); }
+    .btn-ghost:hover { background: #3a4460; color: var(--text); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-h); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    /* ── Table ── */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th {
+      text-align: left; padding: 10px 16px;
+      color: var(--muted); font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 13px 16px; color: var(--text); vertical-align: middle; }
+    .td-id   { color: var(--muted); font-size: 0.78rem; font-family: monospace; }
+    .td-name { font-weight: 500; }
+    .td-email{ color: var(--muted); }
+
+    /* ── Avatar ── */
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #fff;
+      margin-right: 10px; vertical-align: middle; flex-shrink: 0;
+    }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 48px 0; color: var(--muted); }
+    .empty-state svg { margin-bottom: 12px; opacity: 0.4; display: block; margin-left: auto; margin-right: auto; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── Stats ── */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+    .stat-value.primary { color: var(--primary); }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-top: 1px solid var(--border);
+    }
+    .pag-info { font-size: 0.8rem; color: var(--muted); }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn {
+      min-width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); background: transparent; color: var(--muted);
+      border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: background 0.12s, border-color 0.12s, color 0.12s;
+      text-decoration: none;
+    }
+    .pag-btn:hover { background: var(--card); color: var(--text); border-color: var(--primary); }
+    .pag-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .pag-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+    /* ── Edit mode highlight ── */
+    .editing .card:first-of-type {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,142,247,0.12);
+    }
+  </style>
+</head>
+<body th:classappend="${editUser.id != null} ? 'editing' : ''">
+
+  <!-- ── Navbar ── -->
+  <nav>
+    <div class="nav-brand">intern<span>-demo</span></div>
+    <div class="nav-links">
+      <a href="/" class="active">Users</a>
+      <a href="/endpoints">Endpoints</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>User Management</h1>
+      <p>Add, edit, and delete users from the PostgreSQL database.</p>
+    </div>
+
+    <!-- ── Flash messages (from RedirectAttributes) ── -->
+    <div th:if="${success}" class="flash flash-success">
+      <span>✓</span>
+      <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="flash flash-error">
+      <span>✕</span>
+      <span th:text="${error}"></span>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value primary" th:text="${totalElements}">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">DB Status</div>
+        <div class="stat-value" style="font-size:1rem; color: var(--success);">Connected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Base URL</div>
+        <div class="stat-value" style="font-size:0.85rem; color: var(--muted); font-family:monospace;">localhost:8080</div>
+      </div>
+    </div>
+
+    <!-- ── Add / Edit form ── -->
+    <!--
+      When editUser.id is null  → POST /users     (create)
+      When editUser.id is set   → POST /users/{id} (update)
+    -->
+    <div class="card">
+      <div class="card-title"
+           th:text="${editUser.id != null} ? 'Edit User' : 'Add New User'">Add New User</div>
+
+      <form th:action="${editUser.id != null}
+                        ? @{/users/{id}(id=${editUser.id})}
+                        : @{/users}"
+            method="post">
+
+        <div class="form-grid">
+          <div>
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name"
+                   placeholder="e.g. Jane Doe"
+                   th:value="${editUser.name}" />
+          </div>
+          <div>
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email"
+                   placeholder="e.g. jane@example.com"
+                   th:value="${editUser.email}" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary"
+                  th:text="${editUser.id != null} ? 'Update User' : 'Add User'">Add User</button>
+          <a th:if="${editUser.id != null}" href="/" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- ── Users table ── -->
+    <div class="card" style="padding:0; overflow:hidden; margin-top:20px;">
+      <div style="padding:18px 24px; border-bottom: 1px solid var(--border);
+                  display:flex; align-items:center; justify-content:space-between;">
+        <span class="card-title" style="margin:0;">All Users</span>
+        <a href="/" class="btn btn-ghost btn-sm">↺ Refresh</a>
+      </div>
+
+      <div class="table-wrapper">
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(users)}">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <p>No users yet. Add one above!</p>
+        </div>
+
+        <!-- Users table -->
+        <table th:if="${not #lists.isEmpty(users)}">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Email</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="user : ${users}">
+              <td class="td-id" th:text="'#' + ${user.id}"></td>
+              <td class="td-name">
+                <span class="avatar"
+                  th:text="${#strings.toUpperCase(#strings.substring(user.name, 0, 1))}">?</span>
+                <span th:text="${user.name}"></span>
+              </td>
+              <td class="td-email" th:text="${user.email}"></td>
+              <td style="text-align:right;">
+                <!-- Edit: links to /?editId={id} — server pre-fills the form -->
+                <a class="btn btn-ghost btn-sm"
+                   th:href="@{/(editId=${user.id})}">Edit</a>
+
+                <!-- Delete: small inline form → POST /users/{id}/delete -->
+                <form th:action="@{/users/{id}/delete(id=${user.id})}"
+                      method="post" style="display:inline;"
+                      onsubmit="return confirm('Delete this user? This cannot be undone.')">
+                  <button type="submit" class="btn btn-sm"
+                          style="background:rgba(224,92,107,0.15);color:var(--danger);margin-left:6px;">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+      <!-- Server-side pagination -->
+      <div class="pagination"
+           th:if="${totalPages > 1}"
+           th:with="start=${currentPage * pageSize + 1},
+                    end=${#numbers.min(start + pageSize - 1, totalElements)}">
+        <span class="pag-info"
+          th:text="|Showing ${start}–${end} of ${totalElements} users|"></span>
+        <div class="pag-btns">
+          <a class="pag-btn" th:classappend="${isFirst} ? 'disabled'"
+             th:href="${isFirst} ? '#' : '/?page=' + ${currentPage - 1}">‹</a>
+
+          <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a class="pag-btn" th:classappend="${i == currentPage} ? 'active'"
+               th:href="'/?page=' + ${i}"
+               th:text="${i + 1}"></a>
+          </th:block>
+
+          <a class="pag-btn" th:classappend="${isLast} ? 'disabled'"
+             th:href="${isLast} ? '#' : '/?page=' + ${currentPage + 1}">›</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Auto-dismiss flash messages after 4 seconds
+    document.querySelectorAll('.flash').forEach(el => {
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.4s ease';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+      }, 4000);
+    });
+
+    // Scroll form into view when in edit mode
+    if (document.body.classList.contains('editing')) {
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+</body>
+</html>
